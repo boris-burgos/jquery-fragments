@@ -1,0 +1,305 @@
+<html>
+    <head>
+        <title>jquery-fragments documentation</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="style.css" type="text/css" media="all" />
+    </head>
+    <body>
+        <h1 id="how">How it works?</h1>    
+        <p>jquery-fragments overrides the <a href="http://api.jquery.com/load/">jQuery load function</a>, 
+            the new function is almost the same but when the data is received the jquery-fragments plugins check if the plugin is enabled (by http headers of by settings). 
+            If enabled the plugin make his magic if not the default jQuery load functionality is used.
+        </p>
+        <h2>What is the magic?</h2>
+        <p>When the plugin is enabled instead of put the data into the target it analyzes the data a take all the first level tags.</p>
+        <p>For each first level tag it looks for a target tag or tags in the original document. 
+            To look for the target tags the plugin uses several <a href="#matchingMethods">matching methods</a>. 
+        </p>
+        <p>After that it applies the defined <a href="#actions">action</a> on the tag (usually replacing the <strong>content</strong> of the tag).</p>
+        <p>And that it's!.</p>
+        <h1>Settings introduction</h1>
+
+        <p>jquery-fragments allows a lot of configuration settings, but in the most cases you don't need to change anything. Just add the plugin and it works!.</p>
+
+        <p>To change the default settings of the plugin you only need to provide the settings changes with the fragmentsSetup function.</p>
+
+        <p>For example to disable jquery-fragments write:</p>
+
+        <pre>$.fragmentsSetup({enabled:false});</pre>
+
+        <p>You also can change the settings in the load call:</p>
+
+        <pre>$.load("data.php",null,{enabled:false});</pre>
+
+        <p>Note the <span class="code">null</span> as first parameter. This is because the orginal <span class="code">load</span> function use two
+            parameteres <span class="code">params</span> and <span class="code">callback</span> so to not mix the parameters you always must provide at least one parameter.
+        </p>
+        <p>Valid examples ares:</p>
+        <pre>$.load("data.php",null,{enabled:false});</pre>
+        <pre>$.load("data.php",{"data":"value"},{enabled:false});</pre>
+        <pre>$.load("data.php",function(){
+        alert("This is my callback function!");
+    },{enabled:false});</pre>
+        <pre>$.load("data.php",{"data":"value"},function(){
+        alert("This is my callback function!");
+    },{enabled:false});</pre>
+
+
+        <h1>Settings</h1>
+        This are the default jquery-fragments settings:
+        <br/><br/>
+        <table id="settings">
+            <thead><tr><th>Property</th><th>Values</th><th>Default value</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class='code'>enabled</span></td>
+                    <td><span class='code'>true</span> | <span class='code'>false</span> | <span class='code'>"httpHeaders"</span></td>
+                    <td><span class='code'>"httpHeaders"</span></td>
+                    <td>Enables/disables the plugin or activate the <a href='#httpHeaders'>conditional activation</a></td>
+                </tr><tr>
+                    <td><span class='code'>defaultAction</span></td>
+                    <td>
+                        <span class='code'>"replace"</span> | 
+                        <span class='code'>"append"</span> | 
+                        <span class='code'>"prepend"</span> | 
+                        <span class='code'>"delete"</span> | 
+                    </td><td><span class='code'>"replace"</span></td><td>
+                        Set the default action when apply a block change. See the section <a href="#actions">Actions</a>.
+                    </td>
+                </tr><tr>
+                    <td><span class='code'>appendClass</span></td><td>String with class name</td><td><span class='code'>"fragments-append"</span></td><td>Overrides the default action for this block to 'append'. See the section <a href="#actions">Actions</a></td>
+                </tr><tr>
+                    <td><span class='code'>prependClass</span></td><td>String with class name</td><td><span class='code'>"fragments-prepend"</span></td><td>Overrides the default action for this block to 'prepend'. See the section <a href="#actions">Actions</a></td>
+                </tr><tr>
+                    <td><span class='code'>replaceClass</span></td><td>String with class name</td><td><span class='code'>"fragments-replace"</span></td><td>Overrides the default action for this block to 'replace'. See the section <a href="#actions">Actions</a></td>
+                </tr><tr>
+                    <td><span class='code'>deleteClass</span></td><td>String with class name</td><td><span class='code'>"fragments-delete"</span></td><td>Overrides the default action for this block to 'delete'. See the section <a href="#actions">Actions</a></td>
+                </tr><tr>
+                    <td><span class='code'>specialTagClass</span></td>
+                    <td>Dictionary with class/tag pairs</td>
+                    <td><pre>{'fragments-tag-head':'head'}</pre></td>
+                    <td>Allow to convert any tag to another. See the <a href="specialTags">Special Tags</a> section.</td>
+                </tr><tr>
+                    <td><span class='code'>scriptTagClass</span></td><td>String with class name</td><td><span class='code'>"fragments-tag-script"</span></td><td>Defines the special class name to add scripts to the document. See the <a href="#scripts">Adding scripts to your document</a> section.</td>
+                </tr><tr>
+                    <td><span class='code'>matchingMethods</span></td><td></td><td></td><td>Defines or modify the matching methods used by the plugin. See the <a href="#matchingMethods">Matching Methods</a> section.</td>
+                </tr><tr>
+                    <td><span class='code'>useFullDocument</span></td><td><span class='code'>true</span> | <span class='code'>false</span></td><td><span class='code'>false</span></td>
+                    <td>Enables/disables the <a href="#useFullDocument"><span class='code'>useFullDocument</span></a> functionality,<br/> 
+                        it forces to use always all the document to place the changes not only the selector used to call <span class='code'>$.load()</span> 
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="specialTags">Special Tags</h2>
+        <p>Some tags can't be loaded by the jQuery $.load() method. jquery-fragments 
+            allow you to define a tag (like a &lt;div&gt;) that will be converted 
+            to another tag (like &lt;head&gt;).</p>
+        <p>To do this you only need to use any of the 
+            <span class='code'>specialTagClass</span> setting class, 
+            when a tag use any of this tags the <a href="#matchingMethods">matching methods</a>
+            will use the tags asigned to the class instead de real tag in the load() response.
+        </p>
+        <p>By default jquery-fragments define the class <span class='code'>fragments-tag-head</span> to set the target tag to the &lt;head&gt; tag. For example:</p>
+        <pre>&lt;div class="fragments-tag-head fragments-append"&gt;
+    &lt;link href="test.css" type="text/css" rel="stylesheet"/&gt;
+&lt;/div&gt;</pre>
+        <p>This will append the new stylesheet to the document's head.</p>
+        <p>Feel free to define new special tag classes.</p>
+        <p>To add scripts to the documento you must use a special wat. See the <a href="#scripts">Adding scripts to your document</a> section.</p>
+        <h2 id="scripts">Adding scripts to your document</h2>
+        <p>To add &lt;script&gt; to the document you must use a special way:</p>
+        <pre>&lt;div class="fragments-tag-script"&gt;test.js&lt;/div&gt;</pre>
+        <p>This will add the script with src "test.js" using the $.getScript() jQuery method.</p>
+        <h2 id="httpHeaders">Activating the plugin with <span class='code'>"httpHeaders"</span></h2>
+        <p>By default the plugin is enabled with <span class='code'>"httpHeaders"</span> conditional activation.</p> 
+        <p>This means that the plugin will only work when a special http header is
+            sended by the server. This header is <span class='code'>X-jQuery-Fragments-Enabled</span> and the value must be <span class='code'>true</span> or <span class='code'>1</span>.
+        </p>
+
+        <p>
+            If any other value is sended or no <span class='code'>X-jQuery-Fragments-Enabled</span> is found the plugin don't do anything.
+        </p>
+        <p>This allow to the server to decide when the plugin must do their magic or not.</p>
+
+        To activate the plugin in php for example you only need to send the header like this:
+        <pre>header("X-jQuery-Fragments-Enabled: true");</pre>
+
+        You can disable this functionality changing the jquery-fragments setting <span class='code'>enabled</span> to <span class='code'>true</span>. In this case the plugin will always work.
+        <pre>$.fragmentsSetup({enabled:true});</pre>
+
+        This functionality is most usefull when the <a href="#useFullDocument"><span class='code'>useFullDocument</span></a> functionality is enabled.
+
+
+        <h2 id="actions">Actions</h2>
+        <p>For each tag found by the plugin in the load() request response it executes an action over the target tag.</p>
+        The available actions are:
+        <ul>
+            <li>replace: Replaces the content of the target tag with the new content.</li>
+            <li>delete: Deletes the target tag.</li>
+            <li>append: Append the new content to the target tag.</li>
+            <li>prepend: Prepend the new content to the target tag.</li>
+        </ul>
+        <p>By default the plugin executes the default action defined in the <span class='code'>defaultAction</span> settings property. 
+            But you can define custom actions in each block.</p>
+        To change the default action of a block simply add any of the action classess to the block. For example:
+        <pre>&lt;div id="main"&gt;New content&lt;/div&gt;</pre>
+        This will replace the content of the <span class='code'>#main</span> div with <span class='code'>New content</span> (if the default action is "replace").
+        <pre>&lt;div id="main" class="fragments-append"&gt;New content&lt;/div&gt;</pre>
+        This will add the text <span class='code'>New content</span> to the current content of the <span class='code'>#main</span> div.
+        <pre>&lt;div id="main" class="fragments-delete"&gt;&lt;/div&gt;</pre>
+        This will delete the <span class='code'>#main</span> div.
+
+        <h2 id="matchingMethods">Matching Methods</h2>
+        <p>The <span class='code'>matchingMethods</span> setting defines the methods used to look for the target tag of a block in the request response (see the <a href="#how">How it works?</a> section).</p>
+        <p>This setting defines a dictionary of methods. Each method must have, at least, the following properties:</p>
+        <ul>
+            <li><span class='code'>weight</span>: Integer, default 50. Integer with the <em>weight</em> of the method. The methods with less <em>weight</em> will be executed first.</li>
+            <li><span class='code'>enabled</span>: true/false default true. Enables/disables the method.</li>
+            <li><span class='code'>useTag</span>: true/false default true. Enables/disables if the method must use the tag to find the target (#id vs. div#id or .className vs div.className).</li>
+            <li><span class='code'>stopSearch</span>: true/false default true. If true and the method found matching tags the search will stop. If false the search continues and new matching methods could add new elements to the target pool.</li>
+            <li><span class='code'>action</span>:function(container,content,settings) default empty function. Defines the function that will look for the targets.</li>
+        </ul>
+        <h3>Matching function</h3>
+        <p>The action propertie of the matching method must be a function that returns null or a jQuery object.</p>
+        <p>The function gets three params:</p>
+        <ul>
+            <li><span class='code'>container</span>: jQuery object for the tag used to make the $.load() call.</li>
+            <li><span class='code'>content</span>: DOM node for what we are looking matching tags.</li>
+            <li><span class='code'>settings</span>: Dictionary with the jquery-fragments settings.</li>
+        </ul>
+        The function must return <span class='code'>null</span> or a jQuery object.
+        <h3>Default matching methods</h3>
+        <p>jquery-fragments come with some matching methods. They should be enought to the most cases and you don't need to do anything.</p>
+        <p>Some matching methods are disabled by default. The default matching methods are:</p>
+        <ul>
+            <li><span class='code'>byId</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:10</li>
+                    <li><span class='code'>enabled</span>:true</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description: Looks for tags with the same ID.</li>
+                </ul>
+            </li>
+            <li><span class='code'>byAllClasses</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:20</li>
+                    <li><span class='code'>enabled</span>:true</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description: Looks for tags with the same classes (ignores action classes)</li>
+                </ul>
+            </li>
+            <li><span class='code'>byClass</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:30</li>
+                    <li><span class='code'>enabled</span>:true</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description: Looks for tags with any of the block classes (ignores action classes)</li>
+                </ul>
+            </li>
+            <li><span class='code'>byTag</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:100</li>
+                    <li><span class='code'>enabled</span>:false</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description:  Looks for tags with the same tag name and without ID or classes.</li>
+                </ul>
+            </li>
+            <li><span class='code'>byAllTags</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:100</li>
+                    <li><span class='code'>enabled</span>:false</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description: Looks for tags with the same tag name.</li>
+                </ul>
+            </li>
+            <li><span class='code'>bySingleTag</span>:
+                <ul>
+                    <li><span class='code'>weight</span>:100</li>
+                    <li><span class='code'>enabled</span>:true</li>
+                    <li><span class='code'>useTag</span>:true</li>
+                    <li><span class='code'>stopSearch</span>:true</li>
+                    <li>Description: Looks for tags with the same tag name and only make a match if the tag count is one.</li>
+                </ul>
+            </li>
+        </ul>
+        <h3>How to change matching methods?</h3>
+        Enable/disable or modify any of the properties of the matching method are pretty easy. For example to change the weight and stopSearch of the
+        byId method:
+        <pre>$.fragmentsSetup({
+    matchingMethods:{
+            "byId":{
+                weight:30,
+                stopSearch:false   
+            }
+    }
+});</pre>
+        To add a new method simply add a new object to the matchingMethods setting, be carefull with the names to not use a existing one.
+
+        <h2 id="useFullDocument">useFullDocument functionality</h2>
+        <p>jquery-fragments by default only load fragments in the elements covered by the jQuery selector used. So if you have the html:</p>
+
+        <pre>
+&lt;div id="div_a"&gt;
+    &lt;div id="div_a1" class="my_class"&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="div_b"&gt;
+    &lt;div id="div_b1" class="my_class"&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+        </pre>
+        If you execute:
+        <pre>$("div_a").load("data.php");</pre>
+        And the request response is:
+        <pre>&lt;div class="my_class"&gt;New content&lt;/div&gt;</pre>
+        Only the <span class='code'>#div_a1</span> div will be updated. If you use the expression:
+        <pre>$("div_b").load("data.php");</pre>
+        The <span class='code'>#div_b1</span> div will be updated. And finally if you use the expression:
+        <pre>$.load("data.php");</pre>
+        Both <span class='code'>#div_a1</span> and <span class='code'>#div_b1</span> will be updated.
+        The <span class='code'>useFullDocument</span> disables this feature. Not matters with what selector you make the load() call always affects to all
+        the document. So if <span class='code'>useFullDocument</span> setting is true the three examples before will output the same result (both divs will be updated).
+        <h3>So, why should we want it?</h3>
+        <p>The <span class='code'>useFullDocument</span> functionality in combination with the <span class='code'>'httpHeaders'</span> conditional activation allow you
+            to use the load() method with and without the jquery-fragments controled by the server and with no changes in the javascript code.</p>
+        <p>For example imagine the following HTML:</p>
+        <pre>
+&lt;div id="content"&gt;
+    [...]
+&lt;/div&gt;
+&lt;div id="sidebar"&gt;
+    [...]
+&lt;/div&gt;</pre>
+        And we have a jQuery listener that makes that all the link clic load the content in the #content div:
+        <pre>
+            $('a').live('click', function() {
+                var href=$(this).attr("href");
+                $("#content").load(href);
+            });</pre>
+        Well, now we add the jquery-fragments plugin so we need to change the javascript to:
+        <pre>
+            $('a').live('click', function() {
+                var href=$(this).attr("href");
+                $.load(href);
+            });</pre>
+        <p>And change all the responses from the server, etc. But we only need the jquery-fragments functionality in some pages or in some cases.</p>
+        <p>The solution is the combination of <span class='code'>useFullDocument</span> and http headers. With it we don't need to change the javascript, it remains like:</p>
+        <pre>
+            $('a').live('click', function() {
+                var href=$(this).attr("href");
+                $("#content").load(href);
+            });</pre>
+        <p>So if we don't send the http headers the web will remain the same using the standard jQuery load().</p>
+        <p>Now in one section we want to change the sidebar, so only in this secction we send the data for the content and the sidebar and the http headers. 
+            How we had set the <span class='code'>useFullDocument</span> setting to true is the same use 
+            <span class="code">$.load(href);</span> or <span class="code">$("#content").load(href);</span> the plugins always will use all the document to look for targets.</p>
+        <p>With this combination we can use the standar jQuery load() and only when we need to update other content the jquery-fragments will be activated. Great! </p>
+    </body>
+</html>

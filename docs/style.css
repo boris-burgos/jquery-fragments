@@ -1,0 +1,30 @@
+pre {
+    background-color: #EEEEEE;
+    max-width: 70em;
+}
+
+pre,span.code {
+    font-family: Monaco,'DejaVu Sans Mono','Bitstream Vera Sans Mono','Lucida Console',monospace;
+    font-size: 93%;
+    max-width: 66em;
+    overflow: auto;
+    padding: 0.5em;
+}
+
+html{
+	font-family: Verdana;
+	font-size: 12px;
+}
+
+#settings{
+	border-collapse: collapse;
+	border-spacing:0;
+	font-size: 12px;
+}
+
+#settings,#settings td,#settings tr,#settings th{
+	border: 1px solid gray;
+	padding:3px;
+	margin:0;
+	
+}

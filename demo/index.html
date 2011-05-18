@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.js"></script>
+        <script src="../jquery.fragments.js"></script>
+        <script>
+            $(document).ready(function(){
+                //$.fragmentsSetup({"enabled":'httpHeaders','matchingMethods':{'byId':{stopSearch:false}}});
+                $.load("data.php",null,{enabled:true});
+            });
+        </script>
+    </head>
+    <body>
+        <div id="a" >Original text 1</div>
+        <div class="dos" >Original text 2</div>
+    </body>
+</html>
